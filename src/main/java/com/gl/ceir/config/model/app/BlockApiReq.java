@@ -18,7 +18,7 @@ public class BlockApiReq implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String status,message,remark,source,fileName,requestId;
+    private String status,remark,source,fileName,requestId;
 
     private Integer statusCode;
     private Integer imeiCount;
