@@ -2,8 +2,10 @@ package com.gl.ceir.config.model.app;
 
 import lombok.*;
 import jakarta.persistence.*;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Setter
 @Entity
@@ -33,4 +35,7 @@ public class BlockApiReq implements Serializable {
         this.fileName = fileName;
         this.requestId = requestId;
      }
+
+    @UpdateTimestamp
+    private LocalDateTime modifiedOn;
 }
