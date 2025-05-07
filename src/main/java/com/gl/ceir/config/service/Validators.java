@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
@@ -48,7 +49,7 @@ public class Validators {
     private static final Logger logger = LogManager.getLogger(Validators.class);
 
     public void errorValidationCheckerForRegister(BlockedImeiRequest b, BlockApiReq obj) {
-       logger.info("Going to Validations" + b);
+        logger.info("Going to Validations" + b);
         if (b == null || b.getDevices() == null || b.getDevices().isEmpty()) {
             logger.info("Rejected Due to data is empty");
             obj.setStatus("FAIL");
@@ -67,24 +68,25 @@ public class Validators {
         }
     }
 
-    public <T> void authorizationCheckerForCustom(HttpServletRequest request) {
+    public Map authorizationChecker(HttpServletRequest request) {
         if (!Optional.ofNullable(request.getHeader("Authorization")).isPresent() || !request.getHeader("Authorization").startsWith("Basic ")) {
             logger.info("Rejected Due to  Authorization  Not Present" + request.getHeader("Authorization"));
             throw new UnAuthorizationException("en", globalErrorMsgs("en"));
         }
-        logger.info("Basic Authorization present " + request.getHeader("Authorization").substring(6));
+        //     logger.debug("Basic Authorization present " + request.getHeader("Authorization").substring(6));
         try {
             var decodedString = new String(Base64.getDecoder().decode(request.getHeader("Authorization").substring(6)));
-            logger.info("user:" + decodedString.split(":")[0] + "pass:" + decodedString.split(":")[1]);
-            UserVars    userValue = (UserVars) userFactory.createUser().getUserDetailDao(decodedString.split(":")[0], decodedString.split(":")[1]);
-
+            //   logger.debug("user:" + decodedString.split(":")[0] + "pass:" + decodedString.split(":")[1]);
+            UserVars userValue = (UserVars) userFactory.createUser().getUserDetailDao(decodedString.split(":")[0], decodedString.split(":")[1]);
             if (userValue == null || !userValue.getUsername().equals(decodedString.split(":")[0]) || !userValue.getPassword().equals(decodedString.split(":")[1])) {
                 logger.info("username password not match");
                 throw new UnAuthorizationException("en", globalErrorMsgs("en"));
             }
-            logger.debug("Authentication Pass");
+            String usertype = String.valueOf(userValue.getUserTypeId());
+            logger.info("Authentication Pass");
+            return Map.of("userid", userValue.getUsername(), "usertype", usertype);
         } catch (Exception e) {
-            logger.warn("Authentication fail" + e);
+            logger.warn("Authentication fail due to " + e);
             throw new UnAuthorizationException("en", globalErrorMsgs("en"));
         }
     }
@@ -94,8 +96,6 @@ public class Validators {
     }
 
 }
-
-
 
 
 //            if (systemParamServiceImpl.getValueByTag("CustomApiAuthWithIpCheck").equalsIgnoreCase("true")) {

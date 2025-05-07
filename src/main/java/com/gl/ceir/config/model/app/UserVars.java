@@ -10,4 +10,5 @@ public class UserVars {
     String username;
     String password;
     int parentId;
+    int userTypeId;
 }

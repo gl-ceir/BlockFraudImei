@@ -44,13 +44,13 @@ public class BlockedImeiCheckController {
     @PostMapping("/block/add")
     public ResponseEntity registerFraudImei(HttpServletRequest httpRequest, @RequestBody BlockedImeiRequest blockedImeiRequest) {
         getHeaderDetails(httpRequest);
-        validators.authorizationCheckerForCustom(httpRequest);
+        var map= validators.authorizationChecker(httpRequest);
         logger.info("Request :: {} ", blockedImeiRequest);
         String reqId = new SimpleDateFormat("yyyyMMddHHmmssSSS").format(new Date());
         String fileName = blockedImeiServiceImpl.createFile(blockedImeiRequest.toString(), "blockFraudIMEI", "req", reqId);
         var obj = rasFraudImeiReqRepo.save(new BlockApiReq("INIT", 201, blockedImeiRequest.getDevices()== null ? 0:  blockedImeiRequest.getDevices().size(), "RAS", fileName, reqId));
         validators.errorValidationCheckerForRegister(blockedImeiRequest, obj);
-        var value = blockedImeiServiceImpl.registerService(blockedImeiRequest.getDevices(), obj);
+        var value = blockedImeiServiceImpl.registerService(blockedImeiRequest.getDevices(), obj,map);
         return ResponseEntity.status(HttpStatus.OK).headers(HttpHeaders.EMPTY).body(new MappingJacksonValue(value));
     }
 

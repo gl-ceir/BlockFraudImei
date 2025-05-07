@@ -6,7 +6,6 @@ import lombok.ToString;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ToString
 @Getter
 @Setter
 @ResponseStatus(value = HttpStatus.PAYLOAD_TOO_LARGE)
