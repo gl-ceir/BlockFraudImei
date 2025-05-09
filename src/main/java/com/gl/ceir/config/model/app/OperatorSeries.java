@@ -21,8 +21,8 @@ public class OperatorSeries implements Serializable {
     private int seriesStart, seriesEnd;
     private String seriesType, operatorName;
 
-    public OperatorSeries(int id, String operatorName) {
-        this.id = 0L;
+    public OperatorSeries(Long id, String operatorName) {
+        this.id = id;
         this.operatorName = operatorName;
     }
 }

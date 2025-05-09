@@ -14,7 +14,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@Table(name = "block_api_req")
+@Table(name = "block_imei_req")
 public class BlockApiReq implements Serializable {
     private static final long serialVersionUID = 1L;
     @Id

@@ -31,8 +31,8 @@ public class BlockedImeiRegisterServiceImpl {
 
     private static final Logger logger = LogManager.getLogger(BlockedImeiRegisterServiceImpl.class);
 
-    @Value("${gdFailMessage}")
-    private String gdFailMessage;
+    @Value("${alreadyBlockedMessage}")
+    private String alreadyBlockedMessage;
 
     @Value("${failMessage}")
     private String failMessage;
@@ -99,17 +99,19 @@ public class BlockedImeiRegisterServiceImpl {
 
                 } else if (data.getMsisdn() != null && (data.getMsisdn().length() > 20 || !data.getMsisdn().matches("^[0-9]+$"))) {
                     logger.info("msisdn present && msisdn not valid :{}  ", data.getMsisdn());// true
-                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 204, msisdnInvalid_Msg));
-                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 204, failMessage, msisdnInvalid_Msg));
+                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 207, msisdnInvalid_Msg));
+                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 207, failMessage, msisdnInvalid_Msg));
                     failCount++;
-                } else if (data.getImsi() != null && (data.getImsi().length() == 15 || !data.getImsi().matches("^[0-9]+$"))) {
+                } else if (data.getImsi() != null && ( data.getImsi().length() != 15 || !data.getImsi().matches("^[0-9]+$"))) {
                     logger.info("imsi present &&  imsi not valid :{} ", data.getImsi());// true
                     responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 205, imsiInvalid_Msg));
                     a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 205, failMessage, imsiInvalid_Msg));
+                    failCount++;
                 } else if (!checkReason(data)) {
                     logger.info("Reason is not valid :{} ", data.getReason());// true
                     responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 206, reasonInvalid_Msg));
                     a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 206, failMessage, reasonInvalid_Msg));
+                    failCount++;
                 } else {
                     var os = getOperator(data.getImsi(), data.getMsisdn());
                     logger.info(data);
@@ -117,18 +119,18 @@ public class BlockedImeiRegisterServiceImpl {
                     var mode = "blacklist";
                     var ldt = LocalDateTime.now();
                     var days = applicationContext.getEnvironment().getProperty(data.getReason() + "_days");
-                    GenericList b = new BlackList(data.getImei(), data.getImsi(), data.getMsisdn(), apiDetails.getRequestId(), 0, os.getOperatorName(), map.get("usertype"), map.get("userid"), ldt);
+                    GenericList b = new BlackList(data.getImei(), data.getImsi(), data.getMsisdn(), apiDetails.getRequestId(), Math.toIntExact(os.getId()), os.getOperatorName(), map.get("usertype"), map.get("userid"), ldt);
                     if (!days.equalsIgnoreCase("0")) {
                         mode = "greylist";
                         ldt = LocalDateTime.now().plusDays(Integer.parseInt(days));
                         logger.info("Addtional days {}",ldt );
-                        b = new GreyList(data.getImei(), data.getImsi(), data.getMsisdn(), apiDetails.getRequestId(), 0, os.getOperatorName(), map.get("usertype"), map.get("userid"), ldt);
+                        b = new GreyList(data.getImei(), data.getImsi(), data.getMsisdn(), apiDetails.getRequestId(), Math.toIntExact(os.getId()), os.getOperatorName(), map.get("usertype"), map.get("userid"), ldt);
                     }
                     var delta = checkImeiInBlackListData(b, mode);
                     if (delta != null && delta.getSourceOfRequest() != null && delta.getSourceOfRequest().toLowerCase().contains(reason.toLowerCase())) { //  present in db
                         failCount++;
-                        responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), 201, gdFailMessage));
-                        a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), 201, gdFailMessage, "Imei Present with source " + reason));
+                        responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), 201, alreadyBlockedMessage));
+                        a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), 201, alreadyBlockedMessage, "Imei Present with source " + reason));
                     } else if (delta != null) {
                         if (updateInBlackListData(delta, reason, mode)) {
                             passCount++;
@@ -175,15 +177,15 @@ public class BlockedImeiRegisterServiceImpl {
     private OperatorSeries getOperator(String imsi, String msisdn) {
         if (msisdn != null) {
             int ms = Integer.parseInt(msisdn.substring(0, 6));
-            var ops = operatorSeriesRepository.findAll().stream().filter(o -> o.getSeriesType().equalsIgnoreCase("msisdn")).filter(o -> o.getSeriesStart() >= ms && o.getSeriesEnd() <= ms).findFirst();
+            var ops = operatorSeriesRepository.findAll().stream().filter(o -> o.getSeriesType().equalsIgnoreCase("msisdn")).filter(o -> o.getSeriesStart() <= ms && o.getSeriesEnd() >= ms).findAny();
             if (ops.isPresent()) return ops.get();
         }
         if (imsi != null) {
             int ms = Integer.parseInt(imsi.substring(0, 5));
-            var ops = operatorSeriesRepository.findAll().stream().filter(o -> o.getSeriesType().equalsIgnoreCase("imsi")).filter(o -> o.getSeriesStart() >= ms && o.getSeriesEnd() <= ms).findFirst();
+            var ops = operatorSeriesRepository.findAll().stream().filter(o -> o.getSeriesType().equalsIgnoreCase("imsi")).filter(o -> o.getSeriesStart() <= ms && o.getSeriesEnd() >= ms).findAny();
             if (ops.isPresent()) return ops.get();
         }
-        return new OperatorSeries(0, "");
+        return new OperatorSeries(0L, "");
     }
 
     private void updateRegister(int passCount, int failCount, BlockApiReq obj) {
