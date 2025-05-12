@@ -115,7 +115,7 @@ public class BlockedImeiRegisterServiceImpl {
                 } else {
                     var os = getOperator(data.getImsi(), data.getMsisdn());
                     logger.info(data);
-                    logger.info(os);
+            
                     var mode = "blacklist";
                     var ldt = LocalDateTime.now();
                     var days = applicationContext.getEnvironment().getProperty(data.getReason() + "_days");
