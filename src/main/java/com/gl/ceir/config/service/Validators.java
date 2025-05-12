@@ -97,39 +97,3 @@ public class Validators {
 
 }
 
-
-//            if (systemParamServiceImpl.getValueByTag("CustomApiAuthWithIpCheck").equalsIgnoreCase("true")) {
-//                var checkimeiFeatureType = systemParamServiceImpl.getValueByTag("CUSTOM_API_FEATURE_ID");
-//                FeatureIpAccessList featureIpAccessList = featureIpAccessListRepository.getByFeatureId(checkimeiFeatureType);
-//                logger.info(" featureIpAccess List  " + featureIpAccessList);
-//                if (featureIpAccessList == null) {
-//                    throw new UnAuthorizationException("en", customImeiCheckImeiServiceImpl.globalErrorMsgs("en"));
-//                }
-//                if (featureIpAccessList.getTypeOfCheck() == 1) {
-//                    if (!featureIpAccessList.getIpAddress().contains(request.getHeader("Header_ip"))) {//checkImeiRequest.getHeader_public_ip()
-//                        logger.info("Type Check 1 But Ip not allowed ");
-//                        // checkImeiServiceImpl.saveCheckImeiFailDetails(checkImeiRequest, startTime, authFeatureIpNotMatch);
-//                        throw new UnAuthorizationException("en", customImeiCheckImeiServiceImpl.globalErrorMsgs("en"));
-//                    }
-//                } else {
-//                    logger.info("Type Check 2 with feature id  " + featureIpAccessList.getFeatureIpListId() + " And User id " + userValue.getId());
-//                    UserFeatureIpAccessList userFeatureIpAccessList = userFeatureIpAccessListRepository.getByFeatureIpListIdAndUserId(featureIpAccessList.getFeatureIpListId(), userValue.getId());
-//                    logger.info("Response from  UserFeatureIpAccess List " + userFeatureIpAccessList);
-//                    if (userFeatureIpAccessList == null || !(userFeatureIpAccessList.getIpAddress().contains(request.getHeader("Header_ip")))) { //checkImeiRequest.getHeader_public_ip()
-//                        logger.info("Type Check 2 But Ip not allowed ");
-//                        throw new UnAuthorizationException("en", customImeiCheckImeiServiceImpl.globalErrorMsgs("en"));
-//                    }
-//                }
-//            }
-
-//            if (systemParamServiceImpl.getValueByTag("CustomApiAuthOperatorCheck").equalsIgnoreCase("true")) {
-//                var systemConfig = systemConfigListRepository.findByTagAndInterp("OPERATORS", request.getHeader("Operator"));
-//                if (systemConfig == null) {
-//                    logger.info("Operator Not allowed ");
-//                    throw new UnprocessableEntityException("en", globalErrorMsgs("en"));
-//                }
-//                logger.debug("Found operator with  value " + systemConfig.getValue());
-//                userValue = (UserVars) userFactory.createUser().getUserDetailDao(decodedString.split(":")[0], decodedString.split(":")[1], systemConfig.getValue());
-//            } else {
-//                userValue = (UserVars) userFactory.createUser().getUserDetailDao(decodedString.split(":")[0], decodedString.split(":")[1]);
-//            }
