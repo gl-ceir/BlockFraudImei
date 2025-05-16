@@ -3,17 +3,13 @@ package com.gl.ceir.config.service.impl;
 import com.gl.ceir.config.exceptions.InternalServicesException;
 import com.gl.ceir.config.model.app.*;
 import com.gl.ceir.config.repository.app.*;
-//import com.gl.custom.CustomCheck;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-//import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
-
-import static com.gl.ceir.config.service.Validators.globalErrorMsgs;
 
 import java.io.FileWriter;
 import java.nio.file.Files;
@@ -24,6 +20,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import static com.gl.ceir.config.service.Validators.globalErrorMsgs;
 
 
 @Service
@@ -88,29 +86,29 @@ public class BlockedImeiRegisterServiceImpl {
                 logger.info("Starting Registering for" + data);
                 if (StringUtils.isBlank(data.getImei()) || StringUtils.isBlank(data.getReason())) {
                     logger.info("Mandatory param missing for " + data);
-                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 203, imeiReasonNotProvided));
-                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 203, failMessage, imeiReasonNotProvided));
+                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), data.getImsi(), 203, imeiReasonNotProvided));
+                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), data.getImsi(), 203, failMessage, imeiReasonNotProvided));
                     failCount++;
                 } else if (data.getImei().length() < 14 || data.getImei().length() > 16 || !data.getImei().matches("^[0-9]+$")) {
                     logger.info("imei not valid : " + data.getImei());
-                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 204, imeiInvalid_Msg));
-                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 204, failMessage, imeiInvalid_Msg));
+                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), data.getImsi(), 204, imeiInvalid_Msg));
+                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), data.getImsi(), 204, failMessage, imeiInvalid_Msg));
                     failCount++;
 
                 } else if (data.getMsisdn() != null && (data.getMsisdn().length() > 20 || !data.getMsisdn().matches("^[0-9]+$"))) {
                     logger.info("msisdn present && msisdn not valid :{}  ", data.getMsisdn());// true
-                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 207, msisdnInvalid_Msg));
-                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 207, failMessage, msisdnInvalid_Msg));
+                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), data.getImsi(), 207, msisdnInvalid_Msg));
+                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), data.getImsi(), 207, failMessage, msisdnInvalid_Msg));
                     failCount++;
-                } else if (data.getImsi() != null && ( data.getImsi().length() != 15 || !data.getImsi().matches("^[0-9]+$"))) {
+                } else if (data.getImsi() != null && (data.getImsi().length() != 15 || !data.getImsi().matches("^[0-9]+$"))) {
                     logger.info("imsi present &&  imsi not valid :{} ", data.getImsi());// true
-                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 205, imsiInvalid_Msg));
-                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 205, failMessage, imsiInvalid_Msg));
+                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), data.getImsi(), 205, imsiInvalid_Msg));
+                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), data.getImsi(), 205, failMessage, imsiInvalid_Msg));
                     failCount++;
                 } else if (!checkReason(data)) {
                     logger.info("Reason is not valid :{} ", data.getReason());// true
-                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), 206, reasonInvalid_Msg));
-                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), 206, failMessage, reasonInvalid_Msg));
+                    responseArray.add(new ResponseArray(data.getImei(), data.getMsisdn(), data.getImsi(), 206, reasonInvalid_Msg));
+                    a.add(new PrintReponse(data.getImei(), data.getMsisdn(), data.getImsi(), 206, failMessage, reasonInvalid_Msg));
                     failCount++;
                 } else {
                     var os = getOperator(data.getImsi(), data.getMsisdn());
@@ -129,27 +127,27 @@ public class BlockedImeiRegisterServiceImpl {
                     var delta = checkImeiInBlackListData(b, mode);
                     if (delta != null && delta.getSourceOfRequest() != null && delta.getSourceOfRequest().toLowerCase().contains(reason.toLowerCase())) { //  present in db
                         failCount++;
-                        responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), 201, alreadyBlockedMessage));
-                        a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), 201, alreadyBlockedMessage, "Imei Present with source " + reason));
+                        responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), b.getImsi(), 201, alreadyBlockedMessage));
+                        a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), b.getImsi(), 201, alreadyBlockedMessage, "Imei Present with source " + reason));
                     } else if (delta != null) {
                         if (updateInBlackListData(delta, reason, mode)) {
                             passCount++;
-                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), 200, passMessage));
-                            a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), 200, passMessage, "Pass"));
+                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), b.getImsi(), 200, passMessage));
+                            a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), b.getImsi(), 200, passMessage, "Pass"));
                         } else {
                             failCount++;
-                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), 202, failMessage));
-                            a.add(new PrintReponse(b.getImei(), b.getMsisdn(), 202, failMessage, "Fail to accept the Block request"));
+                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), b.getImsi(), 202, failMessage));
+                            a.add(new PrintReponse(b.getImei(), b.getMsisdn(), b.getImsi(), 202, failMessage, "Fail to accept the Block request"));
                         }
                     } else {
                         if (insertInBlackListData(b, reason, mode)) {
                             passCount++;
-                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), 200, passMessage));
-                            a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), 200, passMessage, "Pass"));
+                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), b.getImsi(), 200, passMessage));
+                            a.add(new PrintReponse(b.getActualImei(), b.getMsisdn(), b.getImsi(), 200, passMessage, "Pass"));
                         } else {
                             failCount++;
-                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), 202, failMessage));
-                            a.add(new PrintReponse(b.getImei(), b.getMsisdn(), 202, failMessage, "Fail to accept the block request"));
+                            responseArray.add(new ResponseArray(b.getActualImei(), b.getMsisdn(), b.getImsi(), 202, failMessage));
+                            a.add(new PrintReponse(b.getImei(), b.getMsisdn(), b.getImsi(), 202, failMessage, "Fail to accept the block request"));
                         }
                     }
                 }
@@ -288,13 +286,15 @@ public class BlockedImeiRegisterServiceImpl {
 class PrintReponse {
     String imei;
     String msisdn;
+    String imsi;
     int statusCode;
     String statusMessage;
     String response;
 
-    public PrintReponse(String imei, String msisdn, int statusCode, String statusMessage, String response) {
+    public PrintReponse(String imei, String msisdn, String imsi, int statusCode, String statusMessage, String response) {
         this.imei = imei;
         this.msisdn = msisdn;
+        this.imsi = imsi;
         this.statusCode = statusCode;
         this.statusMessage = statusMessage;
         this.response = response;
@@ -340,6 +340,14 @@ class PrintReponse {
         this.response = response;
     }
 
+    public String getImsi() {
+        return imsi;
+    }
+
+    public void setImsi(String imsi) {
+        this.imsi = imsi;
+    }
+
     public PrintReponse() {
     }
 
@@ -353,6 +361,7 @@ class ResponseArray {
 
     String imei;
     String msisdn;
+    String imsi;
     int statusCode;
     String statusMessage;
 
@@ -391,16 +400,24 @@ class ResponseArray {
         this.statusMessage = statusMessage;
     }
 
-    public ResponseArray(String imei, String msisdn, int statusCode, String statusMessage) {
+    public String getImsi() {
+        return imsi;
+    }
+    public void setImsi(String imsi) {
+        this.imsi = imsi;
+    }
+
+    public ResponseArray(String imei, String msisdn, String imsi, int statusCode, String statusMessage) {
         this.imei = imei;
         this.msisdn = msisdn;
+        this.imsi = imsi;
         this.statusCode = statusCode;
         this.statusMessage = statusMessage;
     }
 
     @Override
     public String toString() {
-        return "{" + "imei='" + imei + '\'' + ", msisdn='" + msisdn + '\'' + ", statusCode=" + statusCode + ", statusMessage='" + statusMessage + '\'' + '}';
+        return "{" + "imei='" + imei + '\'' + ", msisdn='" + msisdn + '\'' + ", imsi='" + imsi + '\'' + ", statusCode=" + statusCode + ", statusMessage='" + statusMessage + '\'' + '}';
     }
 }
 
