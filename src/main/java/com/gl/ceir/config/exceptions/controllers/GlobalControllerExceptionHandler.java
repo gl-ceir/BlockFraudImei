@@ -8,14 +8,11 @@ import com.gl.ceir.config.dto.ApiResponse;
 import com.gl.ceir.config.dto.ExceptionResponse;
 import com.gl.ceir.config.dto.Result;
 import com.gl.ceir.config.exceptions.*;
-
-import java.util.Scanner;
-import java.util.stream.Collectors;
-
 import jakarta.servlet.http.HttpServletRequest;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -29,7 +26,8 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.HttpServerErrorException.InternalServerError;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.NoHandlerFoundException;
-import static com.gl.ceir.config.service.Validators.globalErrorMsgs;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 @ControllerAdvice
 @RestControllerAdvice
@@ -39,6 +37,9 @@ public class GlobalControllerExceptionHandler {
 
     @Autowired
     HttpServletRequest req;
+
+    @Value("${errorMessage}")
+    private  String errorMessage;
 
     /* Global System Exceptions*/
     @ExceptionHandler(NoHandlerFoundException.class)
@@ -51,7 +52,7 @@ public class GlobalControllerExceptionHandler {
             logger.error("Error msgs :" + exp.toString());
 
         }
-        return new ExceptionResponse(HttpStatus.NOT_FOUND.value(), "not found", "en", new Result(globalErrorMsgs("en")));
+        return new ExceptionResponse(HttpStatus.NOT_FOUND.value(), "not found", "en", new Result(errorMessage));
     }
 
     @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
@@ -66,7 +67,7 @@ public class GlobalControllerExceptionHandler {
             logger.error("Error msgs :" + exp.toString());
 
         }
-        return new ExceptionResponse(HttpStatus.METHOD_NOT_ALLOWED.value(), "method not allowed", "en", new Result(globalErrorMsgs("en")));
+        return new ExceptionResponse(HttpStatus.METHOD_NOT_ALLOWED.value(), "method not allowed", "en", new Result(errorMessage));
     }
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)// other than json
@@ -79,7 +80,7 @@ public class GlobalControllerExceptionHandler {
             logger.error("Error msgs :" + exp.toString());
 
         }
-        return new ExceptionResponse(HttpStatus.NOT_ACCEPTABLE.value(), "not acceptable", "en", new Result(globalErrorMsgs("en")));
+        return new ExceptionResponse(HttpStatus.NOT_ACCEPTABLE.value(), "not acceptable", "en", new Result(errorMessage));
     }
 
     @ExceptionHandler(HttpMessageNotReadableException.class)
@@ -87,8 +88,8 @@ public class GlobalControllerExceptionHandler {
     public ExceptionResponse handleIllegalStateException(Exception e, WebRequest request) {
         logger.error("Error msg :" + e.getLocalizedMessage() + " # request " + request.toString());
         logger.error("Error :" + e);
-        logger.error("Error ..... :" + e.getCause());
-        return new ExceptionResponse(HttpStatus.BAD_REQUEST.value(), "bad request", "en ", new Result(globalErrorMsgs("en")));
+        logger.error("Error ..... :###############" +errorMessage);
+        return new ExceptionResponse(HttpStatus.BAD_REQUEST.value(), "bad request", "en ", new Result(errorMessage));
     }
 
     @ExceptionHandler(Exception.class)
@@ -102,7 +103,7 @@ public class GlobalControllerExceptionHandler {
         } catch (Exception exp) {
             logger.error("Error msgs :" + exp.toString());
         }
-        return new ExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "internal server error", "en ", new Result(globalErrorMsgs("en")));
+        return new ExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "internal server error", "en ", new Result(errorMessage));
     }
 
     @ExceptionHandler(IllegalArgumentException.class)  // spec chars
@@ -115,7 +116,7 @@ public class GlobalControllerExceptionHandler {
             logger.error("Error msgs :" + exp.toString());
 
         }
-        return new ExceptionResponse(HttpStatus.BAD_REQUEST.value(), "bad request", "en", new Result(globalErrorMsgs("en")));
+        return new ExceptionResponse(HttpStatus.BAD_REQUEST.value(), "bad request", "en", new Result(errorMessage));
     }
 
     @ExceptionHandler(InternalServerError.class)
@@ -128,7 +129,7 @@ public class GlobalControllerExceptionHandler {
             logger.error("Error msgs :" + exp.toString());
 
         }
-        return new ExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "server error", "en", new Result(globalErrorMsgs("en")));
+        return new ExceptionResponse(HttpStatus.INTERNAL_SERVER_ERROR.value(), "server error", "en", new Result(errorMessage));
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
@@ -140,7 +141,7 @@ public class GlobalControllerExceptionHandler {
         } catch (Exception exp) {
             logger.error("Error msgs :" + exp.toString());
         }
-        return new ExceptionResponse(HttpStatus.BAD_REQUEST.value(), "bad request", "en", new Result(globalErrorMsgs("en")));
+        return new ExceptionResponse(HttpStatus.BAD_REQUEST.value(), "bad request", "en", new Result(errorMessage));
     }
 
     /* Custom Exceptions */

@@ -197,7 +197,7 @@ public class BlockedImeiRegisterServiceImpl {
 
     private boolean insertIntoBlackListHistory(BlackList b) {
         try {
-            var blh = new BlackListHis(b.getActualImei(), b.getImsi(), b.getMsisdn(), b.getTxnId(), b.getOperator_id(), b.getOperatorName(), b.getSourceOfRequest(), 0, b.getUserType(), b.getUserId());
+            var blh = new BlackListHis(b.getActualImei(), b.getImsi(), b.getMsisdn(), b.getTxnId(), b.getOperator_id(), b.getOperatorName(), b.getSourceOfRequest(), 1, b.getUserType(), b.getUserId());
             blackListHisRepository.save(blh);
             return true;
         } catch (Exception e) {
@@ -209,7 +209,7 @@ public class BlockedImeiRegisterServiceImpl {
 
     private boolean insertIntoGreyListHistory(GreyList b) {
         try {
-            var glh = new GreyListHis(b.getActualImei(), b.getImsi(), b.getMsisdn(), b.getTxnId(), b.getOperator_id(), b.getOperatorName(), b.getSourceOfRequest(), 0, b.getUserType(), b.getUserId());
+            var glh = new GreyListHis(b.getActualImei(), b.getImsi(), b.getMsisdn(), b.getTxnId(), b.getOperator_id(), b.getOperatorName(), b.getSourceOfRequest(), 1, b.getUserType(), b.getUserId());
             greyListHisRepository.save(glh);
             return true;
         } catch (Exception e) {
